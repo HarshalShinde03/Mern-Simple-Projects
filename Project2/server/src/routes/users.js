@@ -2,10 +2,26 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const UserModel = require('../models/Users');
+const z = require('zod')
+
+const validateReq = (input) =>{
+    const schema = z.object({
+        username : z.string().email(),
+        password : z.string().min(6)
+    })
+    return schema.safeParse(input);
+}
+
 
 const router = express.Router();
 
 router.post('/register', async(req,res)=>{
+    const validationResult = validateReq(req.body);
+    console.log(validationResult.error)
+
+  if (!validationResult.success) {
+    return res.status(400).json({ message: "Invalid input", errors: validationResult.error.errors });
+  }
     const {username, password} = req.body;
 
     const user = await UserModel.findOne({username});

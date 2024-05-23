@@ -8,9 +8,17 @@ const Signup = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    setError(""); // Clear any previous error messages
+
+    if (!agreed) {
+      setError("You must agree to the terms and conditions.");
+      return;
+    }
     axios
       .post("http://localhost:3000/auth/register", { username, password })
       .then((res) => {
@@ -18,7 +26,16 @@ const Signup = () => {
         alert("Registration Completed! Now login.");
         navigate("/login");
       })
-      .catch((e) => console.log(e));
+      .catch((e) => {
+        console.log(e);
+        const errors = e.response?.data?.errors;
+        if (errors) {
+          const errorMessages = errors.map(err => err.message).join(", ");
+          setError(errorMessages);
+        } else {
+          setError("An error occurred during registration");
+        }
+      });
   };
 
   return (
@@ -100,6 +117,7 @@ const Signup = () => {
                 </p>
               </label>
             </div>
+            {error && <div className="text-red-500">{error}</div>}{" "}
             <button
               className="mt-6 block w-full select-none rounded-lg bg-pink-500 py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-white shadow-md shadow-pink-500/20 transition-all hover:shadow-lg hover:shadow-pink-500/40 focus:opacity-[0.85] focus:shadow-none active:opacity-[0.85] active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
               type="submit"
